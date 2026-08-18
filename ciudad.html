@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>KRONOS CITY - Ciudad Digital</title>
+</head>
+<body>
+    <h1>🏛️ CIUDAD DIGITAL KRONOS</h1>
+    <h2>Fundador: 7225862335</h2>
+
+    <div id="estado">
+        <p>🛡️ Guardianes activos: <span id="guardianes">3</span></p>
+        <p>📜 Peritos activos: <span id="peritos">2</span></p>
+        <p>👥 Ciudadanos: <span id="ciudadanos">5</span></p>
+        <p>📋 Propuestas: <span id="propuestas">12</span></p>
+    </div>
+
+    <button onclick="crearPropuesta()">Crear Propuesta</button>
+    <button onclick="votarPropuesta()">Votar</button>
+    <button onclick="ejecutarPropuesta()">Ejecutar Propuesta</button>
+    <button onclick="registrarCiudadano()">Registrar Ciudadano</button>
+
+    <div id="log">
+        <h3>📜 Actividad de la Ciudad</h3>
+        <pre id="actividad"></pre>
+    </div>
+
+    <script>
+        // Conexión con Web3 (ethers.js) y tu contrato SovereignCity
+        // Aquí se conecta a Polygon, se lee el estado de la ciudad
+        // y se permiten las acciones según el rol.
+        // (Código detallado de frontend en el siguiente paso)
+    </script>
+</body>
+</html>
