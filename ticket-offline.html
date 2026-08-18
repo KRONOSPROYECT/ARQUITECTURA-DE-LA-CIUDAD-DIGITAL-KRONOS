@@ -241,3 +241,397 @@
     </script>
 </body>
 </html>
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KRONOS MX - Acceso Soberano</title>
+    <style>
+        body {
+            background: #0b0b0b;
+            color: #e0e0e0;
+            font-family: 'Courier New', monospace;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+        }
+        .login-card {
+            background: #121212;
+            border: 1px solid #d4af37;
+            padding: 40px;
+            max-width: 400px;
+            width: 100%;
+            border-radius: 12px;
+            box-shadow: 0 0 40px rgba(212, 175, 55, 0.1);
+            text-align: center;
+        }
+        h1 {
+            color: #d4af37;
+            font-size: 24px;
+            letter-spacing: 4px;
+            margin-bottom: 10px;
+        }
+        .sub {
+            color: #888;
+            font-size: 12px;
+            margin-bottom: 30px;
+        }
+        .status {
+            padding: 15px;
+            border-radius: 8px;
+            margin: 15px 0;
+            font-size: 14px;
+        }
+        .status-sin-sesion {
+            background: #1a1a1a;
+            color: #888;
+            border: 1px solid #333;
+        }
+        .status-sesion {
+            background: #0f2a0f;
+            color: #00ff66;
+            border: 1px solid #00ff66;
+        }
+        .status-error {
+            background: #2a0f0f;
+            color: #ff3333;
+            border: 1px solid #ff3333;
+        }
+        button {
+            background: #d4af37;
+            color: #000;
+            padding: 14px 20px;
+            border: none;
+            border-radius: 6px;
+            font-weight: bold;
+            cursor: pointer;
+            width: 100%;
+            font-size: 16px;
+            letter-spacing: 1px;
+            margin-top: 10px;
+        }
+        button:hover {
+            background: #e0c050;
+        }
+        button.danger {
+            background: #ff3333;
+            color: #fff;
+        }
+        button.danger:hover {
+            background: #cc0000;
+        }
+        .info {
+            font-size: 11px;
+            color: #666;
+            margin-top: 20px;
+            word-break: break-all;
+        }
+        .hash {
+            font-family: monospace;
+            font-size: 9px;
+            color: #444;
+        }
+        .log {
+            margin-top: 20px;
+            padding: 10px;
+            background: #0a0a0a;
+            border-radius: 6px;
+            font-size: 10px;
+            color: #555;
+            text-align: left;
+            max-height: 150px;
+            overflow-y: auto;
+            border: 1px solid #1a1a1a;
+        }
+        .log .ok {
+            color: #00ff66;
+        }
+        .log .err {
+            color: #ff3333;
+        }
+        .badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 10px;
+            font-weight: bold;
+            margin: 5px 2px;
+        }
+        .badge-gold {
+            background: #d4af37;
+            color: #000;
+        }
+        .badge-green {
+            background: #00ff66;
+            color: #000;
+        }
+        .badge-red {
+            background: #ff3333;
+            color: #fff;
+        }
+    </style>
+</head>
+<body>
+    <div class="login-card">
+        <h1>⬡ KRONOS MX</h1>
+        <div class="sub">ACCESO SOBERANO · SOLO FUNDADOR Y ADMINISTRADORES</div>
+
+        <!-- Estado actual -->
+        <div id="statusMessage" class="status status-sin-sesion">
+            🔒 SESIÓN CERRADA · Conecta tu wallet
+        </div>
+
+        <!-- Botones -->
+        <button id="btnConectar" onclick="conectarWallet()">🔑 Conectar MetaMask</button>
+        <button id="btnCerrar" class="danger" onclick="cerrarSesion()" style="display:none;">🚪 Cerrar Sesión</button>
+
+        <!-- Información de la sesión -->
+        <div id="infoSesion" style="display:none;">
+            <p style="margin-top:15px; color:#d4af37; font-size:14px;">
+                ✅ SESIÓN ACTIVA
+            </p>
+            <p style="font-size:11px; color:#888;">
+                <span style="color:#fff;">Wallet:</span> <span id="walletDisplay" class="hash"></span>
+            </p>
+            <p style="font-size:11px; color:#888;">
+                <span style="color:#fff;">Rol:</span> <span id="rolDisplay" class="badge badge-gold">FUNDADOR</span>
+            </p>
+            <p style="font-size:11px; color:#888;">
+                <span style="color:#fff;">Último acceso:</span> <span id="ultimoAcceso"></span>
+            </p>
+        </div>
+
+        <!-- Log de auditoría -->
+        <div class="log" id="logAuditoria">
+            📜 Registro de accesos<br>
+            <span class="ok">● Sistema iniciado</span><br>
+        </div>
+
+        <div class="info">
+            ID Soberano: 7225862335 · TX Anclaje: 0xd94b... · Safe Creative: 2608...
+        </div>
+    </div>
+
+    <script>
+        // ============================================================
+        // CONFIGURACIÓN (solo cambia estas variables)
+        // ============================================================
+
+        // Tu dirección de MetaMask (la que tiene permisos de fundador)
+        const DIRECCION_FUNDADOR = '0x8b1DcaCCd9de5B5b82e29e2CD665F7645C07061E'; // Reemplaza con la tuya
+
+        // Dirección del contrato KronosAccessControl (desplegar primero)
+        const CONTRATO_ACCESS = '0x...'; // Pon aquí la dirección después de desplegar
+
+        // ============================================================
+        // ESTADO DE LA SESIÓN
+        // ============================================================
+
+        let sesionActiva = false;
+        let walletConectada = false;
+        let direccionUsuario = '';
+
+        // ============================================================
+        // FUNCIONES DE CONEXIÓN Y AUTENTICACIÓN
+        // ============================================================
+
+        async function conectarWallet() {
+            try {
+                // Verificar si MetaMask está instalado
+                if (typeof window.ethereum === 'undefined') {
+                    alert('❌ No se detectó MetaMask. Instálalo desde metamask.io');
+                    return;
+                }
+
+                // Solicitar conexión
+                const accounts = await window.ethereum.request({
+                    method: 'eth_requestAccounts'
+                });
+
+                if (accounts.length === 0) {
+                    alert('No se pudo conectar ninguna wallet.');
+                    return;
+                }
+
+                direccionUsuario = accounts[0];
+                walletConectada = true;
+
+                // Mostrar la dirección
+                document.getElementById('walletDisplay').textContent = direccionUsuario;
+
+                // Verificar si tiene permisos
+                const tienePermiso = await verificarPermisos(direccionUsuario);
+
+                if (tienePermiso) {
+                    iniciarSesion(direccionUsuario);
+                } else {
+                    mostrarError('Acceso denegado. No tienes permisos de administrador.');
+                    document.getElementById('btnConectar').style.display = 'block';
+                    document.getElementById('btnCerrar').style.display = 'none';
+                }
+
+            } catch (error) {
+                console.error('Error al conectar:', error);
+                mostrarError('Error al conectar con MetaMask.');
+            }
+        }
+
+        // ============================================================
+        // VERIFICACIÓN DE PERMISOS (contra el contrato + lista local)
+        // ============================================================
+
+        async function verificarPermisos(direccion) {
+            // 1. Verificar contra la lista blanca local (para prueba rápida)
+            if (direccion.toLowerCase() === DIRECCION_FUNDADOR.toLowerCase()) {
+                return true;
+            }
+
+            // 2. Si tienes el contrato desplegado, consulta la blockchain
+            // (aquí se integraría ethers.js para llamar a tieneAcceso())
+            // Por ahora usamos solo la lista local.
+
+            // Si no está en la lista blanca, denegar
+            return false;
+        }
+
+        // ============================================================
+        // INICIO DE SESIÓN
+        // ============================================================
+
+        function iniciarSesion(direccion) {
+            sesionActiva = true;
+            walletConectada = true;
+
+            // Guardar en localStorage (sesión persistente)
+            localStorage.setItem('kronos_sesion', JSON.stringify({
+                direccion: direccion,
+                timestamp: new Date().toISOString()
+            }));
+
+            // Actualizar UI
+            document.getElementById('statusMessage').className = 'status status-sesion';
+            document.getElementById('statusMessage').innerHTML = '✅ SESIÓN ACTIVA · Bienvenido, Soberano';
+
+            document.getElementById('btnConectar').style.display = 'none';
+            document.getElementById('btnCerrar').style.display = 'block';
+            document.getElementById('infoSesion').style.display = 'block';
+
+            document.getElementById('rolDisplay').textContent = 'FUNDADOR';
+            document.getElementById('rolDisplay').className = 'badge badge-gold';
+            document.getElementById('ultimoAcceso').textContent = new Date().toLocaleString();
+
+            // Registrar en el log
+            agregarLog('✅ Acceso permitido para ' + direccion, 'ok');
+        }
+
+        // ============================================================
+        // CIERRE DE SESIÓN
+        // ============================================================
+
+        function cerrarSesion() {
+            // Limpiar estado local
+            sesionActiva = false;
+            walletConectada = false;
+            direccionUsuario = '';
+
+            // Eliminar de localStorage
+            localStorage.removeItem('kronos_sesion');
+
+            // Resetear UI
+            document.getElementById('statusMessage').className = 'status status-sin-sesion';
+            document.getElementById('statusMessage').innerHTML = '🔒 SESIÓN CERRADA · Conecta tu wallet';
+
+            document.getElementById('btnConectar').style.display = 'block';
+            document.getElementById('btnCerrar').style.display = 'none';
+            document.getElementById('infoSesion').style.display = 'none';
+
+            document.getElementById('walletDisplay').textContent = '';
+            document.getElementById('rolDisplay').textContent = 'FUNDADOR';
+            document.getElementById('ultimoAcceso').textContent = '';
+
+            agregarLog('🔒 Sesión cerrada por el usuario', 'ok');
+
+            // Opcional: desconectar MetaMask (no se puede forzar, pero el usuario puede hacerlo)
+        }
+
+        // ============================================================
+        // FUNCIONES AUXILIARES
+        // ============================================================
+
+        function mostrarError(mensaje) {
+            const status = document.getElementById('statusMessage');
+            status.className = 'status status-error';
+            status.innerHTML = '❌ ' + mensaje;
+            agregarLog('❌ ' + mensaje, 'err');
+        }
+
+        function agregarLog(mensaje, tipo = '') {
+            const log = document.getElementById('logAuditoria');
+            const entry = document.createElement('div');
+            entry.textContent = '● ' + new Date().toLocaleTimeString() + ' - ' + mensaje;
+            if (tipo === 'ok') {
+                entry.style.color = '#00ff66';
+            } else if (tipo === 'err') {
+                entry.style.color = '#ff3333';
+            } else {
+                entry.style.color = '#888';
+            }
+            log.appendChild(entry);
+            log.scrollTop = log.scrollHeight;
+        }
+
+        // ============================================================
+        // RESTAURAR SESIÓN AL CARGAR LA PÁGINA
+        // ============================================================
+
+        (function restaurarSesion() {
+            const stored = localStorage.getItem('kronos_sesion');
+            if (stored) {
+                try {
+                    const data = JSON.parse(stored);
+                    // Verificar que la sesión no haya expirado (ej: 24 horas)
+                    const expiracion = new Date(data.timestamp);
+                    expiracion.setHours(expiracion.getHours() + 24);
+                    if (new Date() < expiracion) {
+                        iniciarSesion(data.direccion);
+                        return;
+                    } else {
+                        localStorage.removeItem('kronos_sesion');
+                        agregarLog('⏰ Sesión expirada automáticamente', 'err');
+                    }
+                } catch (e) {
+                    localStorage.removeItem('kronos_sesion');
+                }
+            }
+            // Si no hay sesión, mostrar estado de logout
+            document.getElementById('statusMessage').className = 'status status-sin-sesion';
+            document.getElementById('statusMessage').innerHTML = '🔒 SESIÓN CERRADA · Conecta tu wallet';
+            document.getElementById('btnConectar').style.display = 'block';
+            document.getElementById('btnCerrar').style.display = 'none';
+            document.getElementById('infoSesion').style.display = 'none';
+            agregarLog('🔄 Página cargada · Sesión no encontrada', '');
+        })();
+
+        // ============================================================
+        // LISTENERS PARA CAMBIOS DE CUENTA EN METAMASK
+        // ============================================================
+
+        window.ethereum.on('accountsChanged', function (accounts) {
+            if (accounts.length === 0) {
+                // El usuario desconectó MetaMask manualmente
+                cerrarSesion();
+                agregarLog('⚠️ Cuenta desconectada manualmente', 'err');
+            } else {
+                // Cambió de cuenta, forzar cierre de sesión
+                cerrarSesion();
+                agregarLog('⚠️ Cambio de cuenta detectado. Por favor vuelve a iniciar sesión.', 'err');
+                // Podríamos intentar reconectar automáticamente, pero es mejor pedir acción del usuario.
+            }
+        });
+    </script>
+</body>
+</html>
