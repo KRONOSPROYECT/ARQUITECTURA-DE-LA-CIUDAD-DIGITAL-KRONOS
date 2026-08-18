@@ -289,3 +289,33 @@ contract SovereignCity {
         ciudadanos[_ciudadano].activo = true;
     }
 }
+// ============================================================
+// 9. ESCUDO DE EMERGENCIA - VETO ABSOLUTO (Solo Fundador)
+// ============================================================
+
+function vetoFundacional(uint256 _idPropuesta) external soloFundador {
+    // Cancela cualquier propuesta, incluso si ya fue votada
+    require(_idPropuesta < contadorPropuestas, "Propuesta no existe");
+    Propuesta storage p = propuestas[_idPropuesta];
+    require(!p.ejecutada, "Propuesta ya ejecutada");
+
+    // La propuesta se marca como cancelada
+    p.ejecutada = true;
+    p.hashDocumento = keccak256(abi.encodePacked(
+        "VETADO POR FUNDADOR: ",
+        block.timestamp
+    ));
+
+    emit PropuestaEjecutada(_idPropuesta, p.hashDocumento);
+}
+
+function expulsarCiudadano(address _ciudadano) external soloFundador {
+    require(_ciudadano != fundador, "No puedes expulsarte a ti mismo");
+    require(ciudadanos[_ciudadano].existe, "Ciudadano no existe");
+
+    // Elimina al ciudadano del registro
+    delete ciudadanos[_ciudadano];
+
+    // Si era guardián o perito, lo remueve de las listas
+    // (esto se hace en el frontend para simplificar el código)
+}
