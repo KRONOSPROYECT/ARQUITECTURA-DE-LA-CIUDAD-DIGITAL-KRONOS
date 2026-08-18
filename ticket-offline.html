@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KRONOS Nivel 2 - Ticket Offline</title>
+    <style>
+        body {
+            background: #0b0b0b;
+            color: #e0e0e0;
+            font-family: 'Courier New', monospace;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+        }
+        .card {
+            background: #121212;
+            border: 1px solid #d4af37;
+            padding: 30px;
+            max-width: 500px;
+            width: 100%;
+            border-radius: 12px;
+            box-shadow: 0 0 30px rgba(212, 175, 55, 0.15);
+            text-align: center;
+        }
+        h1 {
+            color: #d4af37;
+            font-size: 24px;
+            letter-spacing: 4px;
+            margin-bottom: 10px;
+        }
+        .sub {
+            color: #888;
+            font-size: 12px;
+            letter-spacing: 2px;
+            margin-bottom: 20px;
+        }
+        input {
+            width: 100%;
+            padding: 12px;
+            background: #1a1a1a;
+            border: 1px solid #333;
+            color: #fff;
+            border-radius: 6px;
+            margin-bottom: 15px;
+            font-size: 14px;
+            box-sizing: border-box;
+        }
+        button {
+            background: #d4af37;
+            color: #000;
+            padding: 12px 20px;
+            border: none;
+            border-radius: 6px;
+            font-weight: bold;
+            cursor: pointer;
+            width: 100%;
+            font-size: 16px;
+            letter-spacing: 1px;
+        }
+        button:hover {
+            background: #e0c050;
+        }
+        .ticket {
+            margin-top: 25px;
+            padding: 20px;
+            border: 1px dashed #d4af37;
+            border-radius: 8px;
+            background: #0f0f0f;
+            text-align: left;
+            word-break: break-all;
+            font-size: 11px;
+            color: #aaa;
+            display: none;
+        }
+        .ticket .verde {
+            color: #00ff66;
+        }
+        .ticket .rojo {
+            color: #ff3333;
+        }
+        .qr-placeholder {
+            margin: 15px 0;
+            padding: 20px;
+            background: #1a1a1a;
+            border-radius: 8px;
+            text-align: center;
+            font-size: 14px;
+            color: #d4af37;
+            letter-spacing: 2px;
+        }
+        .hash {
+            font-family: monospace;
+            font-size: 10px;
+            color: #666;
+        }
+        .footer {
+            margin-top: 20px;
+            font-size: 9px;
+            color: #444;
+            letter-spacing: 1px;
+        }
+        .badge {
+            display: inline-block;
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 10px;
+            font-weight: bold;
+            margin-top: 10px;
+        }
+        .badge-green {
+            background: #00ff66;
+            color: #000;
+        }
+        .badge-red {
+            background: #ff3333;
+            color: #fff;
+        }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <h1>⬡ KRONOS N2</h1>
+        <div class="sub">TICKET OFFLINE · SOBERANO FUNDACIONAL</div>
+
+        <input type="text" id="folioInput" placeholder="Ingresa el folio (ej: FOLIO-001)" value="FOLIO-001">
+        <button onclick="generarTicket()">GENERAR TICKET OFFLINE</button>
+
+        <div id="ticketArea" class="ticket">
+            <div style="font-size:14px; font-weight:bold; color:#d4af37; margin-bottom:8px;">⬡ TICKET SOBERANO</div>
+            <div><span style="color:#888;">Folio:</span> <span id="folioDisplay" style="color:#fff;"></span></div>
+            <div><span style="color:#888;">Hash:</span> <span id="hashDisplay" class="hash"></span></div>
+            <div><span style="color:#888;">Estado:</span> <span id="estadoDisplay" class="verde">VERDE (VIGENTE)</span></div>
+            <div><span style="color:#888;">Firma:</span> <span id="firmaDisplay" class="hash"></span></div>
+            <div class="qr-placeholder" id="qrPlaceholder">
+                📱 ESCANEA ESTE QR PARA VERIFICAR<br>
+                <span style="font-size:10px; color:#666;">(Simulación de QR — en producción usas librería real)</span>
+            </div>
+            <div style="margin-top:10px; font-size:10px; color:#666;">
+                TX Anclaje: 0xd94bf2d1c1187bddf22fe8d376f7663f63a8b01b5e85367b052db43d1ed6a466
+            </div>
+            <div style="margin-top:5px; font-size:10px; color:#666;">
+                Safe Creative: 2608056639878-9QA3G8
+            </div>
+            <div style="margin-top:15px; padding-top:10px; border-top:1px solid #222;">
+                <span class="badge badge-green">ID 7225862335</span>
+                <span class="badge badge-green" style="background:#d4af37; color:#000;">SOBERANO</span>
+            </div>
+            <div class="footer">KRONOS MX · Bloque Génesis 25692765 · HECHO EN MÉXICO</div>
+        </div>
+    </div>
+
+    <script>
+        // ============================================================
+        // Nivel 2 - KRONOS SOBERANO
+        // Genera ticket offline con firma simulada (en producción usas
+        // librería criptográfica real como tweetnacl o liboqs).
+        // ============================================================
+
+        // Datos del Soberano (tuyos, encriptados localmente)
+        const SOBERANO = {
+            id: '7225862335',
+            txEthereum: '0xd94bf2d1c1187bddf22fe8d376f7663f63a8b01b5e85367b052db43d1ed6a466',
+            safeCreative: '2608056639878-9QA3G8',
+            // Esta es una clave privada simulada (en producción usas una real
+            // que nunca toca Internet, solo firma local).
+            privateKey: '0x7F17A66925F5842B0d4881B044BBb0Fb3968b1D1'
+        };
+
+        function hashSimple(texto) {
+            // SHA-256 simulada (en producción usas crypto.subtle o liboqs)
+            let hash = 0;
+            for (let i = 0; i < texto.length; i++) {
+                const char = texto.charCodeAt(i);
+                hash = ((hash << 5) - hash) + char;
+                hash = hash & hash; // Convertir a 32 bits
+            }
+            return '0x' + Math.abs(hash).toString(16).padStart(64, '0');
+        }
+
+        function firmar(datos, clave) {
+            // Firma digital simulada (en producción usas Ed25519 o Dilithium)
+            // Aquí concatenamos y hasheamos para simular una firma.
+            const mensaje = datos + clave;
+            return hashSimple(mensaje);
+        }
+
+        function generarTicket() {
+            const folio = document.getElementById('folioInput').value.trim();
+            if (!folio) {
+                alert('Ingresa un folio válido.');
+                return;
+            }
+
+            // 1. Generar hash del folio (Keccak256 simulado con SHA-256 simple)
+            const hashFolio = hashSimple(folio);
+
+            // 2. Estado: aquí en producción consultas el contrato en Polygon
+            // Para el ticket offline, asumimos que el folio es NUEVO (VERDE)
+            // El sistema luego verifica en Polygon cuando haya Internet.
+            const estado = 'VERDE (VIGENTE)';
+
+            // 3. Datos del ticket
+            const datosTicket = {
+                folio: folio,
+                hash: hashFolio,
+                estado: estado,
+                soberano: SOBERANO.id,
+                tx: SOBERANO.txEthereum,
+                safe: SOBERANO.safeCreative,
+                timestamp: new Date().toISOString()
+            };
+
+            // 4. Firma digital (solo local, nunca viaja por Internet)
+            const datosString = JSON.stringify(datosTicket);
+            const firma = firmar(datosString, SOBERANO.privateKey);
+
+            // 5. Mostrar ticket
+            document.getElementById('folioDisplay').textContent = folio;
+            document.getElementById('hashDisplay').textContent = hashFolio;
+            document.getElementById('estadoDisplay').textContent = estado;
+            document.getElementById('estadoDisplay').className = 'verde';
+            document.getElementById('firmaDisplay').textContent = firma;
+
+            // 6. Mostrar QR simulado
+            const qrData = `KRONOS:${folio}|${hashFolio}|${firma}|${SOBERANO.id}`;
+            document.getElementById('qrPlaceholder').innerHTML = `
+                📱 QR: <span style="font-family:monospace;font-size:9px;word-break:break-all;">${qrData}</span>
+                <br><span style="font-size:9px;color:#666;">(Copia este texto en tu lector QR)</span>
+            `;
+
+            // 7. Mostrar el área del ticket
+            document.getElementById('ticketArea').style.display = 'block';
+
+            // 8. Guardar en localStorage para recuperar offline
+            localStorage.setItem('kronos_ticket_' + folio, JSON.stringify(datosTicket));
+        }
+    </script>
+</body>
+</html>
